@@ -1,4 +1,12 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,12 +26,26 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {/* Floating Auth Button */}
+          <div className="fixed top-6 right-6 z-50 flex gap-2">
+            <SignedOut >
+              <SignInButton className="px-4 py-2 bg-transparent text-white  rounded-lg shadow-lg hover:bg-gradient-to-r from-violet-600/20 to-purple-400/20 text-white transition-colors" />
+              <SignUpButton className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-400 text-white rounded-lg shadow-lg hover:bg-green-600 transition-colors" />
+            </SignedOut>
+            <SignedIn>
+              <UserButton 
+                afterSignOutUrl="/ideation"
+              />
+            </SignedIn>
+          </div>
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
