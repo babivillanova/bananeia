@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
 import TextPressure from "../components/TextPressure";
 
@@ -138,9 +138,10 @@ export default function IdeationPad() {
     const canvasW = baseImg.width + ui.border * 2;
     const canvasH = baseImg.height + ui.border * 2;
     
-    // Get the scale factor used to fit the canvas in viewport
-    const viewportW = window.innerWidth - 100;
-    const viewportH = window.innerHeight - 200;
+    // Get the scale factor used to fit the canvas in viewport (mobile-responsive)
+    const isMobile = window.innerWidth < 768;
+    const viewportW = window.innerWidth - (isMobile ? 24 : 100);
+    const viewportH = window.innerHeight - (isMobile ? 140 : 200);
     const scaleW = viewportW / canvasW;
     const scaleH = viewportH / canvasH;
     const cssScale = Math.min(1, scaleW, scaleH);
@@ -271,9 +272,10 @@ export default function IdeationPad() {
     const W = Math.round(baseImg.width + ui.border * 2);
     const H = Math.round(baseImg.height + ui.border * 2);
 
-    // Get viewport dimensions, accounting for UI elements
-    const viewportW = window.innerWidth - 100; // Account for sidebar padding
-    const viewportH = window.innerHeight - 200; // Account for header/footer UI
+    // Get viewport dimensions, accounting for UI elements (mobile-responsive)
+    const isMobile = window.innerWidth < 768;
+    const viewportW = window.innerWidth - (isMobile ? 24 : 100); // Account for sidebar padding
+    const viewportH = window.innerHeight - (isMobile ? 140 : 200); // Account for prompt bar/footer UI (no header on mobile)
     
     // compute CSS scale to fit viewport while maintaining aspect ratio (don't upscale)
     const scaleW = viewportW / W;
@@ -1146,12 +1148,12 @@ export default function IdeationPad() {
           opacity: 1
         }}
       >
-        <div className="absolute top-6 right-6 z-50">
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
           <button 
             onClick={() => setShowScrollStack(false)}
-            className="w-12 h-12 bg-black/60 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-all"
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-black/60 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-all"
           >
-            <i className="fa-solid fa-times text-lg"></i>
+            <i className="fa-solid fa-times text-sm sm:text-lg"></i>
           </button>
         </div>
         
@@ -1169,41 +1171,41 @@ export default function IdeationPad() {
         >
           {imageStack.map((image, index) => (
             <ScrollStackItem key={image.timestamp} itemClassName="bg-gradient-to-br from-gray-900 via-[#0F0F12] to-black border border-white/10">
-              <div className="w-full h-full flex flex-col lg:flex-row items-stretch gap-6">
+              <div className="w-full h-full flex flex-col lg:flex-row items-stretch gap-4 sm:gap-6">
                 {/* Image Section - Full Dimension */}
-                <div className="relative flex-shrink-0 w-full lg:w-1/2 lg:max-w-md rounded-2xl overflow-hidden shadow-2xl" style={{aspectRatio: '16/9'}}>
+                <div className="relative flex-shrink-0 w-full lg:w-1/2 lg:max-w-md rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl" style={{aspectRatio: '16/9'}}>
                   <img 
                     src={image.url} 
                     alt={`Generation ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                   {image.isOriginal && (
-                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-green-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Original
                     </div>
                   )}
                   {!image.isOriginal && !image.isDroppedVersion && (
-                    <div className="absolute top-4 left-4 bg-violet-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-violet-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Generation {imageStack.length - index}
                     </div>
                   )}
                   {image.isDroppedVersion && (
-                    <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-blue-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Input {imageStack.length - index}
                     </div>
                   )}
                 </div>
                 
                 {/* Text and Actions Section */}
-                <div className="flex-1 flex flex-col justify-between w-full py-4 px-2">
-                  <div className="text-center lg:text-left text-white mb-4">
-                    <h3 className="text-xl lg:text-2xl font-light mb-2 lg:mb-3">
+                <div className="flex-1 flex flex-col justify-between w-full py-2 sm:py-4 px-1 sm:px-2">
+                  <div className="text-center lg:text-left text-white mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-light mb-1 sm:mb-2 lg:mb-3">
                       {image.isOriginal ? 'Original Input' : 
                        image.isDroppedVersion ? `Input ${imageStack.length - index}` : 
                        `Generation ${imageStack.length - index}`}
                     </h3>
                     {image.prompt && (
-                      <p className="text-gray-400 text-sm lg:text-base mb-2 lg:mb-3 leading-relaxed line-clamp-3">
+                      <p className="text-gray-400 text-xs sm:text-sm lg:text-base mb-1 sm:mb-2 lg:mb-3 leading-relaxed line-clamp-3">
                         "{image.prompt}"
                       </p>
                     )}
@@ -1218,7 +1220,7 @@ export default function IdeationPad() {
                         switchToImage(index);
                         setShowScrollStack(false);
                       }}
-                      className="bg-violet-600 hover:bg-violet-700 text-white px-4 lg:px-6 py-2 rounded-lg transition-all font-medium text-sm"
+                      className="bg-violet-600 hover:bg-violet-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg transition-all font-medium text-xs sm:text-sm"
                     >
                       Edit This Version
                     </button>
@@ -1229,7 +1231,7 @@ export default function IdeationPad() {
                         link.download = `generation-${image.timestamp}.png`;
                         link.click();
                       }}
-                      className="bg-white/10 hover:bg-white/20 text-white px-4 lg:px-6 py-2 rounded-lg border border-white/20 transition-all font-medium text-sm"
+                      className="bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg border border-white/20 transition-all font-medium text-xs sm:text-sm"
                     >
                       Download
                     </button>
@@ -1256,25 +1258,25 @@ export default function IdeationPad() {
             onDragLeave={onDragLeave} 
             onDrop={onDrop}
           >
-            <div className="text-center">
-              <div className="w-40 h-40 rounded-3xl flex items-center justify-center mb-8 mx-auto bg-black/20 border border-white/10 backdrop-blur-lg">
-                <i className="fa-solid fa-camera text-5xl text-gray-400"></i>
+            <div className="text-center px-4 sm:px-0">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 mx-auto bg-black/20 border border-white/10 backdrop-blur-lg">
+                <i className="fa-solid fa-camera text-3xl sm:text-5xl text-gray-400"></i>
               </div>
-              <h2 className="text-4xl font-light text-white mb-3 tracking-wide">Capture Vision</h2>
-              <p className="text-gray-400 mb-12 font-light text-lg">Begin architectural exploration</p>
-              <div className="flex space-x-6 justify-center">
+              <h2 className="text-2xl sm:text-4xl font-light text-white mb-2 sm:mb-3 tracking-wide">Capture Vision</h2>
+              <p className="text-gray-400 mb-8 sm:mb-12 font-light text-base sm:text-lg px-4">Begin architectural exploration</p>
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center max-w-md mx-auto sm:max-w-none">
                 <button 
-                  className="bg-gradient-to-r from-violet-600 to-purple-400 text-white px-8 py-4 rounded-2xl font-light hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center space-x-3 shadow-lg shadow-violet-600/20"
+                  className="bg-gradient-to-r from-violet-600 to-purple-400 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-light hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center space-x-3 shadow-lg shadow-violet-600/20 w-full sm:w-auto"
                   onClick={openCamera}
                 >
-                  <i className="fa-solid fa-camera text-lg"></i>
+                  <i className="fa-solid fa-camera text-base sm:text-lg"></i>
                   <span>Capture</span>
                 </button>
                 <button 
-                  className="bg-white/5 text-white px-8 py-4 rounded-2xl font-light border border-white/10 hover:bg-white/10 hover:shadow-lg transition-all flex items-center space-x-3"
+                  className="bg-white/5 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-light border border-white/10 hover:bg-white/10 hover:shadow-lg transition-all flex items-center justify-center space-x-3 w-full sm:w-auto"
                   onClick={() => document.getElementById("import-input").click()}
                 >
-                  <i className="fa-solid fa-upload text-lg"></i>
+                  <i className="fa-solid fa-upload text-base sm:text-lg"></i>
                   <span>Import</span>
                 </button>
               </div>
@@ -1336,19 +1338,16 @@ export default function IdeationPad() {
         )}
       </main>
 
-      {/* Floating Header */}
-      <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
+      {/* Floating Header - Desktop Only */}
+      <header className="hidden sm:block fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3 shadow-lg max-w-[calc(100vw-24px)] w-auto">
         <div className="flex items-center justify-between space-x-16">
           <div className="flex items-center space-x-3">
-            {/* <div className="w-8 h-8 0 rounded-lg flex items-center justify-center shadow-md">
+            {/* <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md">
               <img src="/logo_ideiuda_sm.png" alt="Ideiuda Logo" className="w-8 h-8" />
             </div> */}
             <h1 className="text-lg font-light text-white tracking-wide">Ideiuda</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
-              <i className="fa-solid fa-gear text-xs"></i>
-            </button>
             <button 
               className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
               onClick={() => setShowWelcomeModal(true)}
@@ -1370,11 +1369,16 @@ export default function IdeationPad() {
 
       {/* Floating Left Sidebar - References */}
       <aside 
-        className={`fixed top-1/2 transform -translate-y-1/2 z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 max-h-[calc(100vh-100px)] overflow-y-auto shadow-lg transition-all duration-300 ease-in-out ${
-          sidebarCollapsed 
-            ? 'left-[-260px] w-64' 
-            : 'left-6 w-64'
-        }`}
+        className={`fixed z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 overflow-y-auto shadow-lg transition-all duration-300 ease-in-out
+          ${sidebarCollapsed 
+            ? 'left-[-280px] sm:left-[-260px]' 
+            : 'left-3 sm:left-6'
+          }
+          w-72 sm:w-64
+          top-20 sm:top-1/2 sm:transform sm:-translate-y-1/2
+          bottom-32 sm:bottom-auto
+          max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-100px)]
+        `}
       >
         <div className="mb-5">
           <h3 className="text-sm font-medium text-white mb-1 tracking-wide">Reference Library</h3>
@@ -1445,7 +1449,7 @@ export default function IdeationPad() {
         {/* Collapse Button - Inside Sidebar */}
         <button
           onClick={() => setSidebarCollapsed(true)}
-          className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-6 h-12   rounded-r-lg flex items-center justify-center text-gray-900 mr-2 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg"
+          className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-6 h-12  rounded-r-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg"
         >
           <i className="fa-solid fa-chevron-left text-xs"></i>
         </button>
@@ -1454,7 +1458,8 @@ export default function IdeationPad() {
       {/* Expand Trigger - When Collapsed */}
       {sidebarCollapsed && (
         <div 
-          className="fixed top-1/2 transform -translate-y-1/2 left-0 z-50 w-8 h-24 group cursor-pointer"
+          className="fixed left-0 z-50 w-8 group cursor-pointer
+            top-1/2 transform -translate-y-1/2 h-16 sm:h-24"
           onMouseEnter={() => {}}
           onClick={() => setSidebarCollapsed(false)}
         >
@@ -1462,24 +1467,51 @@ export default function IdeationPad() {
           <div className="absolute inset-0 bg-transparent"></div>
           
           {/* Expand Button */}
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-6 h-12  rounded-r-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg group-hover:opacity-100">
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-6 h-12 bg-black/60 backdrop-blur-md rounded-r-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg group-hover:opacity-100">
             <i className="fa-solid fa-chevron-right text-xs"></i>
           </div>
-          
-          {/* Small Preview Icon */}
-          {/* <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-4 h-8 bg-black/40 backdrop-blur-sm border-r border-white/8 rounded-r flex items-center justify-center opacity-70 group-hover:opacity-100 transition-all duration-200">
-            <i className="fa-solid fa-images text-[8px] text-gray-400"></i>
-          </div> */}
         </div>
       )}
 
-      {/* Floating Right Panel - Prompt */}
+      {/* Mobile Prompt Bar - Top of Screen */}
+      <div className="block sm:hidden fixed top-3 left-3 right-3 z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-lg">
+        <div className="flex gap-2 items-center">
+          <h1 className="text-sm font-light text-white tracking-wide whitespace-nowrap">Ideiuda</h1>
+          <textarea 
+            placeholder="Describe your vision..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="flex-1 h-10 p-2 bg-black/20 border border-white/10 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent text-sm font-light placeholder-gray-500 text-white"
+            rows="1"
+          />
+          <SignedIn>
+            <button 
+              disabled={!baseImg || !prompt || loading}
+              onClick={onGenerate}
+              className="w-10 h-10 bg-gradient-to-r from-violet-600 to-purple-400 text-white rounded-lg font-light shadow-lg shadow-violet-600/20 hover:shadow-violet-600/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              <i className="fa-solid fa-wand-magic-sparkles text-sm"></i>
+            </button>
+          </SignedIn>
+          <SignedOut>
+            <div className="w-10 h-10 bg-white/5 border border-purple-400 text-gray-300 rounded-lg flex items-center justify-center">
+              <i className="fa-solid fa-lock text-sm"></i>
+            </div>
+          </SignedOut>
+        </div>
+      </div>
+
+      {/* Desktop Floating Right Panel - Prompt */}
       <aside 
-        className={`fixed top-1/2 transform -translate-y-1/2 z-40 w-80 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-h-[calc(100vh-100px)] flex flex-col shadow-lg transition-all duration-300 ease-in-out ${
-          rightPanelCollapsed 
+        className={`hidden sm:block fixed z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col shadow-lg transition-all duration-300 ease-in-out
+          ${rightPanelCollapsed 
             ? 'right-[-310px]' 
             : 'right-6'
-        }`}
+          }
+          w-80
+          top-1/2 transform -translate-y-1/2
+          max-h-[calc(100vh-100px)]
+        `}
       >
         <div className="mb-5">
           <h3 className="text-lg font-light text-white mb-1 tracking-wide">Design Intent</h3>
@@ -1492,33 +1524,9 @@ export default function IdeationPad() {
             onChange={(e) => setPrompt(e.target.value)}
             className="w-full h-36 p-4 bg-black/20 border border-white/10 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent text-sm font-light placeholder-gray-500 text-white"
           />
-          
-          {/* <div className="mt-6">
-            <h4 className="text-sm font-medium text-white mb-3 tracking-wide">Concept Starters</h4>
-            <div className="space-y-2">
-              <button 
-                className="w-full text-left p-3 bg-white/5 rounded-lg text-xs hover:bg-white/10 transition-all font-light border border-transparent hover:border-white/10"
-                onClick={() => setPrompt("Biophilic integration with natural light")}
-              >
-                Biophilic integration with natural light
-              </button>
-              <button 
-                className="w-full text-left p-3 bg-white/5 rounded-lg text-xs hover:bg-white/10 transition-all font-light border border-transparent hover:border-white/10"
-                onClick={() => setPrompt("Parametric facade optimization")}
-              >
-                Parametric facade optimization
-              </button>
-              <button 
-                className="w-full text-left p-3 bg-white/5 rounded-lg text-xs hover:bg-white/10 transition-all font-light border border-transparent hover:border-white/10"
-                onClick={() => setPrompt("Adaptive spatial configuration")}
-              >
-                Adaptive spatial configuration
-              </button>
-            </div>
-          </div> */}
         </div>
 
-        <div className=" pt-6  border-white/10">
+        <div className="pt-6 border-white/10">
           <SignedIn>
             <button 
               disabled={!baseImg || !prompt || loading}
@@ -1556,16 +1564,16 @@ export default function IdeationPad() {
         {/* Collapse Button - Inside Right Panel */}
         <button
           onClick={() => setRightPanelCollapsed(true)}
-          className="absolute top-1/2 -left-0 transform -translate-y-1/2 w-6 h-12  rounded-l-lg flex items-center justify-center text-gray-900 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg"
+          className="absolute top-1/2 -left-0 transform -translate-y-1/2 w-6 h-12  backdrop-blur-md rounded-l-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-black/80 transition-all duration-200 shadow-lg"
         >
           <i className="fa-solid fa-chevron-right text-xs"></i>
         </button>
       </aside>
 
-      {/* Expand Trigger - When Right Panel Collapsed */}
+      {/* Expand Trigger - When Right Panel Collapsed (Desktop Only) */}
       {rightPanelCollapsed && (
         <div 
-          className="fixed top-1/2 transform -translate-y-1/2 right-0 z-50 w-8 h-24 group cursor-pointer"
+          className="hidden sm:block fixed right-0 z-50 w-8 group cursor-pointer top-1/2 transform -translate-y-1/2 h-24"
           onMouseEnter={() => {}}
           onClick={() => setRightPanelCollapsed(false)}
         >
@@ -1581,10 +1589,10 @@ export default function IdeationPad() {
 
       {/* Floating Drawing Tools */}
       {baseImg && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl p-2.5 flex items-center space-x-3">
+        <div className="fixed bottom-3 sm:bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl p-2 sm:p-2.5 flex items-center space-x-2 sm:space-x-3 max-w-[calc(100vw-24px)] overflow-x-auto">
           <div className="relative color-picker-container">
             <button 
-              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-md sm:rounded-lg flex items-center justify-center transition-all ${
                 mode === "pen" 
                   ? "bg-violet-400 text-white" 
                   : "bg-white/10 text-gray-300 hover:bg-white/20"
@@ -1599,14 +1607,14 @@ export default function IdeationPad() {
               }}
             >
               <i 
-                className="fa-solid fa-pen text-sm" 
+                className="fa-solid fa-pen text-xs sm:text-sm" 
                 style={{ color: mode === "pen" ? drawColor : undefined }}
               ></i>
             </button>
             
             {/* Advanced Color Picker Popup */}
             {showColorPicker && (
-              <div className="absolute bottom-12 left-0 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl z-10 w-80" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+              <div className="absolute bottom-12 left-0 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl z-10 w-72 sm:w-80 max-w-[calc(100vw-48px)]" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                 {/* Gradient Type Selector */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium text-white">Linear</span>
@@ -1616,9 +1624,9 @@ export default function IdeationPad() {
                 </div>
 
                 {/* Main Color Area */}
-                <div className="relative mb-4">
+                <div className="relative mb-3 sm:mb-4">
                   <div 
-                    className="w-full h-48 rounded-xl cursor-crosshair relative overflow-hidden"
+                    className="w-full h-40 sm:h-48 rounded-lg sm:rounded-xl cursor-crosshair relative overflow-hidden"
                     style={{
                       background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${colorHsv.h}, 100%, 50%))`
                     }}
@@ -1722,17 +1730,17 @@ export default function IdeationPad() {
             )}
           </div>
           <button 
-            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-md sm:rounded-lg flex items-center justify-center transition-all ${
               mode === "eraser" 
                 ? "bg-violet-400 text-white" 
                 : "bg-white/10 text-gray-300 hover:bg-white/20"
             }`}
             onClick={() => setMode("eraser")}
           >
-            <i className="fa-solid fa-eraser text-sm"></i>
+            <i className="fa-solid fa-eraser text-xs sm:text-sm"></i>
           </button>
-          <div className="w-px h-6 bg-white/10"></div>
-          <div className="flex items-center space-x-2">
+          <div className="w-px h-5 sm:h-6 bg-white/10"></div>
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <input 
               type="range" 
               min="1" 
@@ -1741,42 +1749,53 @@ export default function IdeationPad() {
               onChange={(e) => {
                 setStrokeWidth(parseInt(e.target.value));
               }}
-              className="w-24 accent-violet-400"
+              className="w-16 sm:w-24 accent-violet-400"
             />
           </div>
-          <div className="w-px h-6 bg-white/10"></div>
+          <div className="w-px h-5 sm:h-6 bg-white/10"></div>
           <button 
             onClick={clearSketch}
-            className="w-10 h-10 bg-white/10 text-white rounded-lg flex items-center justify-center hover:bg-red-900/60 transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 bg-white/10 text-white rounded-md sm:rounded-lg flex items-center justify-center hover:bg-red-900/60 transition-all"
           >
-            <i className="fa-solid fa-trash text-sm"></i>
+            <i className="fa-solid fa-trash text-xs sm:text-sm"></i>
           </button>
         </div>
       )}
 
+      {/* Mobile Avatar - Aligned with Drawing Tools */}
+      <div className="block sm:hidden fixed bottom-6 left-4 z-40">
+        <SignedIn>
+          <div className="w-9 h-9 bg-black/60 backdrop-blur-md  rounded-xl flex items-center justify-center shadow-xl">
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "w-6 h-6",
+                  userButtonPopoverCard: "bg-black/90 border border-white/10",
+                  userButtonPopoverActionButton: "text-white hover:bg-white/10"
+                }
+              }}
+            />
+          </div>
+        </SignedIn>
+        <SignedOut>
+          <div className="w-9 h-9 bg-black/60 backdrop-blur-md border border-white/10 text-gray-400 rounded-xl flex items-center justify-center shadow-xl">
+            <i className="fa-solid fa-user text-sm"></i>
+          </div>
+        </SignedOut>
+      </div>
+
       {/* Image Stack Button */}
       {imageStack.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40">
+        <div className="fixed bottom-6 sm:bottom-6 right-3 sm:right-6 z-40">
           <button
             onClick={() => setShowScrollStack(true)}
-            className="relative bg-black/60 backdrop-blur-md border border-white/20 text-white rounded-2xl p-4 hover:bg-black/80 transition-all shadow-lg hover:bg-gray-400/20"
+            className="relative bg-black/60 backdrop-blur-md  text-white rounded-xl sm:rounded-2xl hover:bg-black/80 transition-all shadow-xl hover:bg-gray-400/20 w-9 h-9 sm:w-auto sm:h-auto sm:p-4 flex items-center justify-center"
           >
-            <div className="flex items-center space-x-3">
-              {/* <div className="w-8 h-8 rounded-lg overflow-hidden">
-                <img 
-                  src={imageStack[0]?.url} 
-                  alt="Latest generation"
-                  className="w-full h-full object-cover"
-                />
-              </div> */}
-              {/* <div className="text-left">
-                <div className="text-sm font-medium">View History</div> */}
-                {/* <div className="text-xs text-gray-400">{imageStack.length} versions</div> */}
-              {/* </div> */}
-              <i className="fa-solid fa-layer-group text-lg"></i>
+            <div className="flex items-center space-x-0 sm:space-x-3">
+              <i className="fa-solid fa-layer-group text-sm sm:text-lg"></i>
             </div>
             {imageStack.length > 1 && (
-              <div className="absolute -top-2 -right-2 bg-violet-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+              <div className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 bg-violet-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
                 {imageStack.length}
               </div>
             )}
@@ -1789,27 +1808,27 @@ export default function IdeationPad() {
 
       {/* Welcome Modal */}
       {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 z-[9999]">
-          <div className="relative w-full max-w-4xl h-full max-h-[80vh] bg-black rounded-3xl border border-white/10 overflow-hidden">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 z-[9999]">
+          <div className="relative w-full max-w-4xl h-full max-h-[90vh] sm:max-h-[80vh] bg-black rounded-2xl sm:rounded-3xl border border-white/10 overflow-hidden">
             {/* Close Button */}
             <button 
               onClick={() => setShowWelcomeModal(false)}
-              className="absolute top-8 right-8 z-10 w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
+              className="absolute top-4 right-4 sm:top-8 sm:right-8 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
             >
-              <i className="fa-solid fa-times text-lg"></i>
+              <i className="fa-solid fa-times text-sm sm:text-lg"></i>
             </button>
 
             {/* Modal Content */}
-            <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-12 text-center overflow-y-auto">
               {/* Welcome Text */}
               <div className="mb-0">
-                <h2 className="text-xl font-light text-white mb-0 tracking-wide">
+                <h2 className="text-lg sm:text-xl font-light text-white mb-0 tracking-wide">
                   Hello! Welcome to
                 </h2>
               </div>
 
               {/* IDEIUDA with TextPressure Effect */}
-              <div className="w-full max-w-2xl h-48 mb-6">
+              <div className="w-full max-w-xl sm:max-w-2xl h-32 sm:h-48 mb-4 sm:mb-6">
                 <TextPressure
                   text="IDEIUDA"
                   flex={true}
@@ -1820,12 +1839,12 @@ export default function IdeationPad() {
                   italic={true}
                   textColor="#8B5CF6"
                   strokeColor="#ff0000"
-                  minFontSize={36}
+                  minFontSize={24}
                 />
               </div>
 
               {/* App Explanation */}
-              <div className="max-w-3xl text-gray-300 text-md leading-relaxed space-y-4">
+              <div className="max-w-3xl text-gray-300 text-sm sm:text-md leading-relaxed space-y-3 sm:space-y-4 px-4 sm:px-0">
                 <p>
                   Your creative companion for architectural visualization and design exploration. 
                   Transform your ideas into stunning visual concepts with AI-powered generation.
@@ -1845,7 +1864,7 @@ export default function IdeationPad() {
               {/* Get Started Button */}
               <button 
                 onClick={() => setShowWelcomeModal(false)}
-                className="mt-6 bg-gradient-to-r from-violet-600 to-purple-400 text-white px-12 py-3 rounded-2xl font-light text-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-violet-600/20"
+                className="mt-4 sm:mt-6 bg-gradient-to-r from-violet-600 to-purple-400 text-white px-8 sm:px-12 py-3 rounded-xl sm:rounded-2xl font-light text-base sm:text-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-violet-600/20"
               >
                 Get Started
               </button>
@@ -1857,26 +1876,26 @@ export default function IdeationPad() {
       {/* Camera Modal */}
       {showCameraModal && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-80 flex items-center justify-center">
-          <div className="relative w-full h-full max-w-4xl max-h-[90vh] bg-black rounded-2xl border border-white/10 overflow-hidden">
+          <div className="relative w-full h-full max-w-4xl max-h-[100vh] sm:max-h-[90vh] bg-black rounded-none sm:rounded-2xl border-0 sm:border border-white/10 overflow-hidden">
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-black/60 backdrop-blur-md border-b border-white/10 p-4">
+            <div className="absolute top-0 left-0 right-0 z-10 bg-black/60 backdrop-blur-md border-b border-white/10 p-3 sm:p-4 safe-area-inset-top">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-light text-white">Camera Capture</h3>
-                <div className="flex items-center space-x-3">
+                <h3 className="text-base sm:text-lg font-light text-white">Camera Capture</h3>
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   {/* Switch Camera Button */}
                   <button
                     onClick={switchCamera}
-                    className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
+                    className="w-9 h-9 sm:w-10 sm:h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
                     title="Switch Camera"
                   >
-                    <i className="fa-solid fa-camera-rotate text-sm"></i>
+                    <i className="fa-solid fa-camera-rotate text-xs sm:text-sm"></i>
                   </button>
                   {/* Close Button */}
                   <button 
                     onClick={closeCameraModal}
-                    className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
+                    className="w-9 h-9 sm:w-10 sm:h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
                   >
-                    <i className="fa-solid fa-times text-sm"></i>
+                    <i className="fa-solid fa-times text-xs sm:text-sm"></i>
                   </button>
                 </div>
               </div>
@@ -1908,18 +1927,18 @@ export default function IdeationPad() {
                   />
                   
                   {/* Capture Controls */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md border-t border-white/10 p-6">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md border-t border-white/10 p-4 sm:p-6 safe-area-inset-bottom">
                     <div className="flex items-center justify-center">
                       <button
                         onClick={capturePhoto}
                         disabled={!cameraStream}
-                        className="w-16 h-16 bg-white border-4 border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        className="w-14 h-14 sm:w-16 sm:h-16 bg-white border-4 border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                       >
-                        <div className="w-12 h-12 bg-white rounded-full"></div>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full"></div>
                       </button>
                     </div>
-                    <div className="text-center mt-3">
-                      <p className="text-white text-sm font-light">Tap to capture</p>
+                    <div className="text-center mt-2 sm:mt-3">
+                      <p className="text-white text-xs sm:text-sm font-light">Tap to capture</p>
                     </div>
                   </div>
                 </>

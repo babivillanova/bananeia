@@ -57,9 +57,11 @@ export default function RootLayout({ children }) {
               <SignUpButton className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-400 text-white rounded-lg shadow-lg hover:bg-green-600 transition-colors" />
             </SignedOut>
             <SignedIn>
-              <UserButton 
-                afterSignOutUrl="/ideation"
-              />
+              <div className="hidden sm:block">
+                <UserButton 
+                  afterSignOutUrl="/ideation"
+                />
+              </div>
             </SignedIn>
           </div>
           {children}

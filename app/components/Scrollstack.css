@@ -48,7 +48,7 @@
 /* Responsive design for horizontal card layout */
 @media (max-width: 1024px) {
   .scroll-stack-card {
-    height: 28rem;
+    height: auto;
     min-height: 28rem;
     padding: 1.5rem;
   }
@@ -62,7 +62,7 @@
   }
   
   .scroll-stack-inner {
-    padding: 15vh 2rem 50rem;
+    padding: 15vh 1.5rem 50rem;
   }
 }
 
@@ -71,10 +71,25 @@
     height: auto;
     min-height: 20rem;
     padding: 1rem;
+    margin: 20px 0;
   }
   
   .scroll-stack-inner {
-    padding: 10vh 1rem 50rem;
+    padding: 10vh 1rem 30rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .scroll-stack-card {
+    height: auto;
+    min-height: 18rem;
+    padding: 0.75rem;
+    margin: 15px 0;
+  }
+  
+  .scroll-stack-inner {
+    padding: 8vh 0.75rem 25rem;
   }
 }
   
