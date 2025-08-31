@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
 import TextPressure from "../components/TextPressure";
@@ -1131,8 +1132,21 @@ export default function IdeationPad() {
     if (imageStack.length === 0) return null;
     
     return (
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-60">
-        <div className="absolute top-6 right-6 z-10">
+      <div 
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999]" 
+        style={{
+          zIndex: 9999, 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0,
+          pointerEvents: 'auto',
+          visibility: 'visible',
+          opacity: 1
+        }}
+      >
+        <div className="absolute top-6 right-6 z-50">
           <button 
             onClick={() => setShowScrollStack(false)}
             className="w-12 h-12 bg-black/60 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-all"
@@ -1143,7 +1157,7 @@ export default function IdeationPad() {
         
         <ScrollStack
           key={`scroll-stack-${imageStack.length}`}
-          className="w-full h-full"
+          className="w-full h-full relative z-10"
           itemDistance={80}
           itemScale={0.05}
           itemStackDistance={40}
@@ -1567,7 +1581,7 @@ export default function IdeationPad() {
 
       {/* Floating Drawing Tools */}
       {baseImg && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/8 rounded-2xl shadow-xl p-2.5 flex items-center space-x-3">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl p-2.5 flex items-center space-x-3">
           <div className="relative color-picker-container">
             <button 
               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
@@ -1592,7 +1606,7 @@ export default function IdeationPad() {
             
             {/* Advanced Color Picker Popup */}
             {showColorPicker && (
-              <div className="absolute bottom-12 left-0 bg-black/60 backdrop-blur-md border border-white/8 rounded-2xl p-4 shadow-2xl z-10 w-80" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+              <div className="absolute bottom-12 left-0 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl z-10 w-80" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                 {/* Gradient Type Selector */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium text-white">Linear</span>
@@ -1771,11 +1785,11 @@ export default function IdeationPad() {
       )}
 
       {/* Image Stack Modal */}
-      {showScrollStack && <ImageScrollStack />}
+      {showScrollStack && typeof document !== 'undefined' && createPortal(<ImageScrollStack />, document.body)}
 
       {/* Welcome Modal */}
       {showWelcomeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-70 flex items-center justify-center p-6">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 z-[9999]">
           <div className="relative w-full max-w-4xl h-full max-h-[80vh] bg-black rounded-3xl border border-white/10 overflow-hidden">
             {/* Close Button */}
             <button 
