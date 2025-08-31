@@ -966,6 +966,119 @@ export default function IdeationPad() {
   // Show welcome modal
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
+  // Camera capture state
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [cameraError, setCameraError] = useState(null);
+  const [facingMode, setFacingMode] = useState('environment'); // 'user' for front, 'environment' for back
+  const videoRef = useRef(null);
+  const captureCanvasRef = useRef(null);
+
+  // Camera functions
+  async function startCamera() {
+    try {
+      setCameraError(null);
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setCameraStream(stream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setCameraError(error.message || 'Unable to access camera');
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+  }
+
+  async function switchCamera() {
+    const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newFacingMode);
+    
+    if (cameraStream) {
+      stopCamera();
+      // Small delay to ensure camera is released
+      setTimeout(() => {
+        startCamera();
+      }, 100);
+    }
+  }
+
+  async function capturePhoto() {
+    if (!videoRef.current || !captureCanvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = captureCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw the current video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to blob
+    const blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', 0.9);
+    });
+    
+    // Create a File object from the blob
+    const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    
+    // Process the captured image the same way as file input
+    const bmp = await fileToBitmap(file, ui.maxDim);
+    const url = URL.createObjectURL(file);
+    
+    // Initialize the image stack with the captured image
+    const initialImage = {
+      bitmap: bmp,
+      url: url,
+      timestamp: Date.now(),
+      isOriginal: true,
+      isCameraCapture: true
+    };
+    
+    setBaseImg(bmp);
+    setImageStack([initialImage]);
+    setActiveImageIndex(0);
+    
+    // Close camera modal and stop camera
+    setShowCameraModal(false);
+    stopCamera();
+  }
+
+  function openCamera() {
+    setShowCameraModal(true);
+    startCamera();
+  }
+
+  function closeCameraModal() {
+    setShowCameraModal(false);
+    stopCamera();
+  }
+
+  // Cleanup camera stream on component unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   // Export functionality - downloads current canvas composition
   function handleExport() {
     if (!baseImg) return;
@@ -1138,7 +1251,7 @@ export default function IdeationPad() {
               <div className="flex space-x-6 justify-center">
                 <button 
                   className="bg-gradient-to-r from-violet-600 to-purple-400 text-white px-8 py-4 rounded-2xl font-light hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center space-x-3 shadow-lg shadow-violet-600/20"
-                  onClick={() => document.getElementById("capture-input").click()}
+                  onClick={openCamera}
                 >
                   <i className="fa-solid fa-camera text-lg"></i>
                   <span>Capture</span>
@@ -1210,7 +1323,7 @@ export default function IdeationPad() {
       </main>
 
       {/* Floating Header */}
-      <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/8 rounded-2xl px-6 py-3 shadow-lg">
+      <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
         <div className="flex items-center justify-between space-x-16">
           <div className="flex items-center space-x-3">
             {/* <div className="w-8 h-8 0 rounded-lg flex items-center justify-center shadow-md">
@@ -1243,7 +1356,7 @@ export default function IdeationPad() {
 
       {/* Floating Left Sidebar - References */}
       <aside 
-        className={`fixed top-1/2 transform -translate-y-1/2 z-40 bg-black/60 backdrop-blur-md border border-white/8 rounded-2xl p-5 max-h-[calc(100vh-100px)] overflow-y-auto shadow-lg transition-all duration-300 ease-in-out ${
+        className={`fixed top-1/2 transform -translate-y-1/2 z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 max-h-[calc(100vh-100px)] overflow-y-auto shadow-lg transition-all duration-300 ease-in-out ${
           sidebarCollapsed 
             ? 'left-[-260px] w-64' 
             : 'left-6 w-64'
@@ -1348,7 +1461,7 @@ export default function IdeationPad() {
 
       {/* Floating Right Panel - Prompt */}
       <aside 
-        className={`fixed top-1/2 transform -translate-y-1/2 z-40 w-80 bg-black/60 backdrop-blur-md border border-white/8 rounded-2xl p-6 max-h-[calc(100vh-100px)] flex flex-col shadow-lg transition-all duration-300 ease-in-out ${
+        className={`fixed top-1/2 transform -translate-y-1/2 z-40 w-80 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-h-[calc(100vh-100px)] flex flex-col shadow-lg transition-all duration-300 ease-in-out ${
           rightPanelCollapsed 
             ? 'right-[-310px]' 
             : 'right-6'
@@ -1403,7 +1516,7 @@ export default function IdeationPad() {
             </button>
           </SignedIn>
           <SignedOut>
-            <div className="w-full bg-gray-600 text-gray-300 py-4 rounded-xl font-light text-md text-center">
+            <div className="w-full bg-white/5 border border-purple-400 text-gray-300 py-4 rounded-xl font-light text-md text-center">
               <i className="fa-solid fa-lock mr-2"></i>
               Sign in to generate concepts
             </div>
@@ -1723,6 +1836,84 @@ export default function IdeationPad() {
                 Get Started
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Camera Modal */}
+      {showCameraModal && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-80 flex items-center justify-center">
+          <div className="relative w-full h-full max-w-4xl max-h-[90vh] bg-black rounded-2xl border border-white/10 overflow-hidden">
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 z-10 bg-black/60 backdrop-blur-md border-b border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-light text-white">Camera Capture</h3>
+                <div className="flex items-center space-x-3">
+                  {/* Switch Camera Button */}
+                  <button
+                    onClick={switchCamera}
+                    className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
+                    title="Switch Camera"
+                  >
+                    <i className="fa-solid fa-camera-rotate text-sm"></i>
+                  </button>
+                  {/* Close Button */}
+                  <button 
+                    onClick={closeCameraModal}
+                    className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/20 transition-all"
+                  >
+                    <i className="fa-solid fa-times text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Camera View */}
+            <div className="relative w-full h-full flex items-center justify-center bg-black">
+              {cameraError ? (
+                <div className="text-center text-white p-8">
+                  <i className="fa-solid fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                  <h4 className="text-xl font-light mb-2">Camera Access Error</h4>
+                  <p className="text-gray-400 mb-4">{cameraError}</p>
+                  <button
+                    onClick={startCamera}
+                    className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-all"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                    style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
+                  />
+                  
+                  {/* Capture Controls */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md border-t border-white/10 p-6">
+                    <div className="flex items-center justify-center">
+                      <button
+                        onClick={capturePhoto}
+                        disabled={!cameraStream}
+                        className="w-16 h-16 bg-white border-4 border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-white rounded-full"></div>
+                      </button>
+                    </div>
+                    <div className="text-center mt-3">
+                      <p className="text-white text-sm font-light">Tap to capture</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Hidden canvas for capture */}
+            <canvas ref={captureCanvasRef} className="hidden" />
           </div>
         </div>
       )}
