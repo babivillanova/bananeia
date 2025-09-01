@@ -27,7 +27,7 @@ export default function IdeationPad() {
   const [isDragging, setIsDragging] = useState(false);  // drag-and-drop visual state
   const [isDraggingOverCanvas, setIsDraggingOverCanvas] = useState(false); // drag over canvas center
   const [elapsedMs, setElapsedMs] = useState(0);        // timer for generation
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // sidebar collapse state
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false); // right panel collapse state
   const timerRef = useRef(null);
   const [refsFiles, setRefsFiles] = useState([]);        // original File objects for refs
@@ -1292,7 +1292,7 @@ export default function IdeationPad() {
                 <i className="fa-solid fa-camera text-3xl sm:text-5xl text-gray-400"></i>
               </div>
               <h2 className="text-2xl sm:text-4xl font-light text-white mb-2 sm:mb-3 tracking-wide">Capture Vision</h2>
-              <p className="text-gray-400 mb-8 sm:mb-12 font-light text-base sm:text-lg px-4">Begin architectural exploration</p>
+              <p className="text-gray-400 mb-8 sm:mb-12 font-light text-base sm:text-lg px-4">Begin your ideation journey</p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center max-w-md mx-auto sm:max-w-none">
                 <button 
                   className="bg-gradient-to-r from-violet-600 to-purple-400 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-light hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center space-x-3 shadow-lg shadow-violet-600/20 w-full sm:w-auto"
@@ -1533,14 +1533,28 @@ export default function IdeationPad() {
               )}
             </button>
           
-          {/* <SignedOut>
-            <div className="w-10 h-10 bg-white/5 border border-purple-400 text-gray-300 rounded-lg flex items-center justify-center">
-              <i className="fa-solid fa-lock text-sm"></i>
-            </div>
-          </SignedOut> */}
+       
         </div>
       </div>
       </SignedIn>
+                   <SignedOut>
+             <div className="h-24 text-white rounded-lg flex items-center justify-left">
+               <div className="w-full h-32  sm:hidden px-2">
+                 <TextPressure
+                   text="IDEIUDA"
+                   flex={true}
+                   alpha={false}
+                   stroke={false}
+                   width={true}
+                   weight={true}
+                   italic={true}
+                   textColor="#8B5CF6"
+                   strokeColor="#ff0000"
+                   minFontSize={16}
+                 />
+               </div>
+             </div>
+            </SignedOut>
 
       {/* Desktop Floating Right Panel - Prompt */}
       <aside 
@@ -1812,17 +1826,13 @@ export default function IdeationPad() {
                 elements: {
                   avatarBox: "w-6 h-6",
                   userButtonPopoverCard: "bg-black/90 border border-white/10",
-                  userButtonPopoverActionButton: "text-white hover:bg-white/10"
+                  userButtonPopoverActionButton: "text-black hover:bg-white/10"
                 }
               }}
             />
           </div>
         </SignedIn>
-        <SignedOut>
-          <div className="w-9 h-9 bg-black/60 backdrop-blur-md border border-white/10 text-gray-400 rounded-xl flex items-center justify-center shadow-xl">
-            <i className="fa-solid fa-user text-sm"></i>
-          </div>
-        </SignedOut>
+
       </div>
 
       {/* Image Stack Button */}
