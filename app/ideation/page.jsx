@@ -572,9 +572,38 @@ export default function IdeationPad() {
     }
   }
 
+  // Reset page zoom to 100%
+  function resetPageZoom() {
+    try {
+      // Reset zoom on mobile browsers
+      if (typeof document !== 'undefined') {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+          // Force reflow
+          setTimeout(() => {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+          }, 100);
+        }
+        
+        // For desktop browsers that support zoom
+        if (document.body && document.body.style) {
+          document.body.style.zoom = '1';
+          document.documentElement.style.zoom = '1';
+        }
+      }
+    } catch (error) {
+      console.log('Zoom reset not supported on this browser');
+    }
+  }
+
   // Flatten both canvases and POST to /api/generate-image
   async function onGenerate() {
     if (!baseImg || !prompt) return;
+    
+    // Reset page zoom before generation
+    resetPageZoom();
+    
     setLoading(true);
     setResultURL(null);
     setElapsedMs(0);
@@ -1474,6 +1503,7 @@ export default function IdeationPad() {
       )}
 
       {/* Mobile Prompt Bar - Top of Screen */}
+      <SignedIn>
       <div className="block sm:hidden fixed top-3 left-3 right-3 z-40 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-lg">
         <div className="flex gap-2 items-center">
           <h1 className="text-sm font-light text-white tracking-wide whitespace-nowrap">Ideiuda</h1>
@@ -1484,22 +1514,33 @@ export default function IdeationPad() {
             className="flex-1 h-10 p-2 bg-black/20 border border-white/10 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent text-sm font-light placeholder-gray-500 text-white"
             rows="1"
           />
-          <SignedIn>
+          
             <button 
               disabled={!baseImg || !prompt || loading}
               onClick={onGenerate}
-              className="w-10 h-10 bg-gradient-to-r from-violet-600 to-purple-400 text-white rounded-lg font-light shadow-lg shadow-violet-600/20 hover:shadow-violet-600/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-10 h-10 bg-gradient-to-r from-violet-600 to-purple-400 text-white rounded-lg font-light shadow-lg shadow-violet-600/20 hover:shadow-violet-600/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center relative overflow-hidden"
             >
-              <i className="fa-solid fa-wand-magic-sparkles text-sm"></i>
+              {loading ? (
+                <>
+                  <i className="fa-solid fa-spinner text-sm animate-spin"></i>
+                  {/* Loading progress ring */}
+                  <div className="absolute inset-0 rounded-lg">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-purple-300/20 rounded-lg animate-pulse"></div>
+                  </div>
+                </>
+              ) : (
+                <i className="fa-solid fa-wand-magic-sparkles text-sm"></i>
+              )}
             </button>
-          </SignedIn>
-          <SignedOut>
+          
+          {/* <SignedOut>
             <div className="w-10 h-10 bg-white/5 border border-purple-400 text-gray-300 rounded-lg flex items-center justify-center">
               <i className="fa-solid fa-lock text-sm"></i>
             </div>
-          </SignedOut>
+          </SignedOut> */}
         </div>
       </div>
+      </SignedIn>
 
       {/* Desktop Floating Right Panel - Prompt */}
       <aside 
