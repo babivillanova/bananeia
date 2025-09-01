@@ -27,7 +27,7 @@ export default function IdeationPad() {
   const [isDragging, setIsDragging] = useState(false);  // drag-and-drop visual state
   const [isDraggingOverCanvas, setIsDraggingOverCanvas] = useState(false); // drag over canvas center
   const [elapsedMs, setElapsedMs] = useState(0);        // timer for generation
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Start consistently expanded for SSR 
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false); // right panel collapse state
   const timerRef = useRef(null);
   const [refsFiles, setRefsFiles] = useState([]);        // original File objects for refs
@@ -864,6 +864,19 @@ export default function IdeationPad() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [baseImg, refsImgs]);
+
+  // Handle responsive sidebar behavior after mount to avoid hydration issues
+  useEffect(() => {
+    function handleResize() {
+      setSidebarCollapsed(window.innerWidth < 768);
+    }
+    
+    // Set initial state based on current window size
+    handleResize();
+    
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Close color picker when clicking outside
   useEffect(() => {
